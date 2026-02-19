@@ -1,3 +1,5 @@
+import math
+
 class Expr:
     def eval(self, env):
         raise(NotImplementedError)  
@@ -85,9 +87,10 @@ class Mul(Expr):
     def eval(self, env):
         return self.expr1.eval(env) * self.expr2.eval(env)
     def diff(self, var):
-        p1 = Mul(self.expr1, self.expr2.diff(var))
-        p2 = Mul(self.expr1.diff(var), self.expr2)
-        return Add(p1, p2)
+        return Add(
+            Mul(self.expr1, self.expr2.diff(var)),
+            Mul(self.expr1.diff(var), self.expr2)
+        )
     def __repr__(self):
         return f"Mul({self.expr1.__repr__()}, {self.expr2.__repr__()})"
     def __str__(self):
@@ -105,13 +108,60 @@ class Div(Expr):
     def eval(self, env):
         return self.expr1.eval(env) / self.expr2.eval(env)
     def diff(self, var):
-        p1 = Mul(self.expr1.diff(var), self.expr2)
-        p2 = Mul(self.expr1, self.expr2.diff(var))
-        d = Mul(self.expr2, self.expr2)
-        return Div(Sub(p1, p2), d)
+        return Div(
+            Sub(
+                Mul(self.expr1.diff(var), self.expr2),
+                Mul(self.expr1, self.expr2.diff(var))
+            ),
+            Mul(self.expr2, self.expr2)
+        )
     def __repr__(self):
         return f"Div({self.expr1.__repr__()}, {self.expr2.__repr__()})"
     def __str__(self):
         return f"({self.expr1.__str__()} / {self.expr2.__str__()})"
     def __eq__(self, other):
         return isinstance(other, Div) and self.expr1 == other.expr1 and self.expr2 == other.expr2
+    
+
+class Log(Expr):
+    def __init__(self, expr):
+        self.expr = expr
+    def eval(self, env):
+        return math.log(self.expr.eval(env))
+    def diff(self, var):
+        return Div(self.expr.diff(var), self.expr)
+    def __repr__(self):
+        return f"Log({self.expr.__repr__()})"
+    def __str__(self):
+        return f"log({self.expr.__str__()})"
+    def __eq__(self, other):
+        return isinstance(other, Log) and self.expr == other.expr
+    
+
+class Pow(Expr):
+    def __init__(self, base, exp):
+        self.base = base
+        self.exp = exp
+    def eval(self, env):
+        return self.base.eval(env) ** self.exp.eval(env)
+    def diff(self, var):
+        return Mul(
+            Pow(self.base, self.exp),
+            Add(
+                Div(
+                    Mul(self.exp, self.base.diff(var)),
+                    self.base
+                ),
+                Mul(
+                    self.exp.diff(var),
+                    Log(self.base)
+                )
+            )
+        )
+    def __repr__(self):
+        return f"Pow({self.base.__repr__()}, {self.exp.__repr__()})"
+    def __str__(self):
+        return f"({self.base.__str__()} ^ {self.exp.__str__()})"
+    def __eq__(self, other):
+        return isinstance(other, Pow) and self.base == other.base and self.exp == other.exp
+    

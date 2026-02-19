@@ -1,14 +1,16 @@
 import unittest
+import math
 from expression import (
     Constant, Variable, 
-    Add, Sub, Mul, Div
+    Add, Sub, Mul, Div,
+    Log, Pow
     )
 
 class TestExpression(unittest.TestCase):
     #test Constant
     def test_constant_eval(self):
         const = Constant(5)
-        self.assertEqual(const.eval({"x": 3}), 5)
+        self.assertEqual(const.eval({}), 5)
     def test_constant_diff(self):
         const = Constant(5)
         self.assertEqual(const.diff("x"), Constant(0))
@@ -55,7 +57,7 @@ class TestExpression(unittest.TestCase):
     #test Add
     def test_add_eval1(self):
         expr = Add(Constant(5), Constant(3))
-        self.assertEqual(expr.eval({"x": 3}), 8)
+        self.assertEqual(expr.eval({}), 8)
     def test_add_eval2(self):
         expr = Add(Constant(5), Variable("x"))
         self.assertEqual(expr.eval({"x": 3}), 8)
@@ -89,7 +91,7 @@ class TestExpression(unittest.TestCase):
     #test Sub
     def test_sub_eval1(self):
         expr = Sub(Constant(5), Constant(3))
-        self.assertEqual(expr.eval({"x": 3}), 2)
+        self.assertEqual(expr.eval({}), 2)
     def test_sub_eval2(self):
         expr = Sub(Constant(5), Variable("x"))
         self.assertEqual(expr.eval({"x": 3}), 2)
@@ -123,7 +125,7 @@ class TestExpression(unittest.TestCase):
     #test Mul
     def test_mul_eval1(self):
         expr = Mul(Constant(5), Constant(3))
-        self.assertEqual(expr.eval({"x": 3}), 15)
+        self.assertEqual(expr.eval({}), 15)
     def test_mul_eval2(self):
         expr = Mul(Constant(5), Variable("x"))
         self.assertEqual(expr.eval({"x": 3}), 15)
@@ -169,7 +171,7 @@ class TestExpression(unittest.TestCase):
     #test Div
     def test_div_eval1(self):
         expr = Div(Constant(5), Constant(4))
-        self.assertEqual(expr.eval({"x": 3}), 1.25)
+        self.assertEqual(expr.eval({}), 1.25)
     def test_div_eval2(self):
         expr = Div(Constant(5), Variable("x"))
         self.assertAlmostEqual(expr.eval({"x": 3}), 5 / 3)
@@ -376,3 +378,175 @@ class TestExpression(unittest.TestCase):
             )
         )
         self.assertEqual(expr.diff("x"), expected)
+
+    #test Log
+    def test_log_eval1(self):
+        expr = Log(Constant(math.e))
+        self.assertEqual(expr.eval({"x": 3}), 1)
+    def test_log_eval2(self):
+        expr = Log(Variable("x"))
+        self.assertAlmostEqual(expr.eval({"x": 3}), math.log(3))
+    def test_log_eval3(self):
+        expr = Log(Add(Constant(1), Variable("x")))
+        self.assertAlmostEqual(expr.eval({"x": 3}), math.log(4))
+    def test_log_diff1(self):
+        expr = Log(Variable("x"))
+        self.assertEqual(expr.diff("x"), Div(Constant(1), Variable("x")))
+    def test_log_diff2(self):
+        expr = Log(Add(Constant(1), Variable("x")))
+        expected = Div(
+            Add(Constant(0), Constant(1)),
+            Add(Constant(1), Variable("x"))
+        )
+        self.assertEqual(expr.diff("x"), expected)
+    def test_log_in_log_eval(self):
+        expr = Log(Log(Variable("x")))
+        self.assertEqual(expr.eval({"x": math.e}), 0)
+    def test_log_in_log_diff(self):
+        expr = Log(Log(Variable("x")))
+        expected = Div(
+            Div(Constant(1), Variable("x")),
+            Log(Variable("x"))
+            )
+        self.assertEqual(expr.diff("x"), expected)
+    def test_log_repr(self):
+        expr = Log(Add(Constant(1), Variable("x")))
+        self.assertEqual(expr.__repr__(), 'Log(Add(Constant(1), Variable("x")))')
+    def test_log_str(self):
+        expr = Log(Add(Constant(1), Variable("x")))
+        self.assertEqual(expr.__str__(), "log((1 + x))")
+    def test_log_eq(self):
+        expr1 = Log(Add(Constant(1), Variable("x")))
+        expr2 = Log(Add(Constant(1), Variable("x")))
+        self.assertEqual(expr1, expr2)
+    def test_log_neq(self):
+        expr1 = Log(Add(Constant(1), Variable("x")))
+        expr2 = Log(Add(Constant(1), Variable("y")))
+        self.assertNotEqual(expr1, expr2)
+
+    #test Pow
+    def test_pow_eval1(self):
+        expr = Pow(Constant(4), Constant(2))
+        self.assertEqual(expr.eval({}), 16)
+    def test_pow_eval2(self):
+        expr = Pow(Variable("x"), Constant(2))
+        self.assertEqual(expr.eval({"x": 3}), 9)
+    def test_pow_eval3(self):
+        expr = Pow(Variable("x"), Variable("x"))
+        self.assertEqual(expr.eval({"x": 3}), 27)
+    def test_pow_diff1(self):
+        expr = Pow(Variable("x"), Constant(2))
+        expected = Mul(
+            Pow(Variable("x"), Constant(2)),
+            Add(
+                Div(
+                    Mul(Constant(2), Constant(1)),
+                    Variable("x")
+                ),
+                Mul(Constant(0), Log(Variable("x")))
+            )
+        )
+        self.assertEqual(expr.diff("x"), expected)
+    def test_pow_diff2(self):
+        expr = Pow(Variable("x"), Variable("x"))
+        expected = Mul(
+            Pow(Variable("x"), Variable("x")),
+            Add(
+                Div(
+                    Mul(Variable("x"), Constant(1)),
+                    Variable("x")
+                ),
+                Mul(Constant(1), Log(Variable("x")))
+            )
+        )
+        self.assertEqual(expr.diff("x"), expected)
+    def test_pow_diff3(self):
+        expr = Pow(
+            Add(Variable("x"), Constant(1)),
+            Add(Variable("x"), Constant(2))
+        )
+        expected = Mul(
+            Pow(
+                Add(Variable("x"), Constant(1)),
+                Add(Variable("x"), Constant(2))
+            ),
+            Add(
+                Div(
+                    Mul(
+                        Add(Variable("x"), Constant(2)),
+                        Add(Constant(1), Constant(0))
+                    ),
+                    Add(Variable("x"), Constant(1))
+                ),
+                Mul(
+                    Add(Constant(1), Constant(0)),
+                    Log(
+                        Add(Variable("x"), Constant(1))
+                    )
+                )
+            )
+        )
+        self.assertEqual(expr.diff("x"), expected)
+    def test_pow_diff4(self):
+        expr = Pow(
+            Mul(Constant(2), Variable("x")),
+            Variable("x")
+        )
+        expected = Mul(
+            Pow(
+                Mul(Constant(2), Variable("x")),
+                Variable("x")
+            ),
+            Add(
+                Div(
+                    Mul(
+                        Variable("x"),
+                        Add(
+                            Mul(Constant(2), Constant(1)),
+                            Mul(Constant(0), Variable("x"))
+                        )
+                    ),
+                    Mul(Constant(2), Variable("x"))
+                ),
+                Mul(
+                    Constant(1),
+                    Log(
+                        Mul(Constant(2), Variable("x"))
+                    )
+                )
+            )
+        )
+        self.assertEqual(expr.diff("x"), expected)
+    def test_pow_in_log_diff(self):
+        expr = Log(Pow(Variable("x"), Constant(2)))
+        expected = Div(
+            Mul(
+                Pow(Variable("x"), Constant(2)),
+                Add(
+                    Div(
+                        Mul(Constant(2), Constant(1)),
+                        Variable("x")
+                    ),
+                    Mul(
+                        Constant(0),
+                        Log(Variable("x"))
+                    )
+                )
+            ),
+            Pow(Variable("x"), Constant(2))
+        )
+        self.assertEqual(expr.diff("x"), expected)
+    def test_pow_repr(self):
+        expr = Pow(Variable("x"), Constant(2))
+        self.assertEqual(expr.__repr__(), 'Pow(Variable("x"), Constant(2))')
+    def test_pow_str(self):
+        expr = Pow(Variable("x"), Constant(2))
+        self.assertEqual(expr.__str__(), "(x ^ 2)")
+    def test_pow_eq(self):
+        expr1 = Pow(Variable("x"), Constant(2))
+        expr2 = Pow(Variable("x"), Constant(2))
+        self.assertEqual(expr1, expr2)
+    def test_pow_neq(self):
+        expr1 = Pow(Variable("x"), Constant(2))
+        expr2 = Pow(Variable("x"), Constant(3))
+        self.assertNotEqual(expr1, expr2)
