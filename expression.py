@@ -165,3 +165,35 @@ class Pow(Expr):
     def __eq__(self, other):
         return isinstance(other, Pow) and self.base == other.base and self.exp == other.exp
     
+
+class Sin(Expr):
+    def __init__(self, expr):
+        self.expr = expr
+    def eval(self, env):
+        return math.sin(self.expr.eval(env))
+    def diff(self, var):
+        return Mul(self.expr.diff(var), Cos(self.expr))
+    def __repr__(self):
+        return f"Sin({self.expr.__repr__()})"
+    def __str__(self):
+        return f"sin({self.expr.__str__()})"
+    def __eq__(self, other):
+        return isinstance(other, Sin) and self.expr == other.expr
+
+
+class Cos(Expr):
+    def __init__(self, expr):
+        self.expr = expr
+    def eval(self, env):
+        return math.cos(self.expr.eval(env))
+    def diff(self, var):
+        return Mul(
+            Constant(-1),
+            Mul(self.expr.diff(var), Sin(self.expr))
+        )
+    def __repr__(self):
+        return f"Cos({self.expr.__repr__()})"
+    def __str__(self):
+        return f"cos({self.expr.__str__()})"
+    def __eq__(self, other):
+        return isinstance(other, Cos) and self.expr == other.expr

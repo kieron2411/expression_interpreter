@@ -3,7 +3,8 @@ import math
 from expression import (
     Constant, Variable, 
     Add, Sub, Mul, Div,
-    Log, Pow
+    Log, Pow,
+    Sin, Cos
     )
 
 class TestExpression(unittest.TestCase):
@@ -382,7 +383,7 @@ class TestExpression(unittest.TestCase):
     #test Log
     def test_log_eval1(self):
         expr = Log(Constant(math.e))
-        self.assertEqual(expr.eval({"x": 3}), 1)
+        self.assertEqual(expr.eval({}), 1)
     def test_log_eval2(self):
         expr = Log(Variable("x"))
         self.assertAlmostEqual(expr.eval({"x": 3}), math.log(3))
@@ -549,4 +550,130 @@ class TestExpression(unittest.TestCase):
     def test_pow_neq(self):
         expr1 = Pow(Variable("x"), Constant(2))
         expr2 = Pow(Variable("x"), Constant(3))
+        self.assertNotEqual(expr1, expr2)
+
+    #test Sin
+    def test_sin_eval1(self):
+        expr = Sin(Constant(0))
+        self.assertAlmostEqual(expr.eval({}), 0)
+    def test_sin_eval2(self):
+        expr = Sin(Variable("x"))
+        self.assertAlmostEqual(expr.eval({"x": math.pi / 2}), 1)
+    def test_sin_diff1(self):
+        expr = Sin(Variable("x"))
+        self.assertEqual(expr.diff("x"), Mul(Constant(1), Cos(Variable("x"))))
+    def test_sin_diff2(self):
+        expr = Sin(Mul(Constant(2), Variable("x")))
+        expected = Mul(
+            Add(
+                Mul(Constant(2), Constant(1)),
+                Mul(Constant(0), Variable("x"))
+            ),
+            Cos(
+                Mul(Constant(2), Variable("x"))
+            )
+        )
+        self.assertEqual(expr.diff("x"), expected)
+    def test_sin_diff3(self):
+        expr = Sin(Pow(Variable("x"), Constant(2)))
+        expected = Mul(
+            Mul(
+                Pow(Variable("x"), Constant(2)),
+                Add(
+                    Div(
+                        Mul(Constant(2), Constant(1)),
+                        Variable("x")
+                    ),
+                    Mul(
+                        Constant(0),
+                        Log(Variable("x"))
+                    )
+                )
+            ),
+            Cos(
+                Pow(Variable("x"), Constant(2))
+            )
+        )
+        self.assertEqual(expr.diff("x"), expected)
+    def test_sin_repr(self):
+        expr = Sin(Variable("x"))
+        self.assertEqual(expr.__repr__(), 'Sin(Variable("x"))')
+    def test_sin_str(self):
+        expr = Sin(Variable("x"))
+        self.assertEqual(expr.__str__(), "sin(x)")
+    def test_sin_eq(self):
+        expr1 = Sin(Variable("x"))
+        expr2 = Sin(Variable("x"))
+        self.assertEqual(expr1, expr2)
+    def test_sin_neq(self):
+        expr1 = Sin(Variable("x"))
+        expr2 = Sin(Variable("y"))
+        self.assertNotEqual(expr1, expr2)
+
+    #test Cos
+    def test_cos_eval1(self):
+        expr = Cos(Constant(0))
+        self.assertAlmostEqual(expr.eval({}), 1)
+    def test_cos_eval2(self):
+        expr = Cos(Variable("x"))
+        self.assertAlmostEqual(expr.eval({"x": math.pi / 2}), 0)
+    def test_cos_diff1(self):
+        expr = Cos(Variable("x"))
+        expected = Mul(
+            Constant(-1),
+            Mul(Constant(1), Sin(Variable("x")))
+        )
+        self.assertEqual(expr.diff("x"), expected)
+    def test_cos_diff2(self):
+        expr = Cos(Mul(Constant(2), Variable("x")))
+        expected = Mul(
+            Constant(-1),
+            Mul(
+                Add(
+                    Mul(Constant(2), Constant(1)),
+                    Mul(Constant(0), Variable("x"))
+                ),
+                Sin(
+                    Mul(Constant(2), Variable("x"))
+                )
+            )
+        )
+        self.assertEqual(expr.diff("x"), expected)
+    def test_cos_diff3(self):
+        expr = Cos(Pow(Variable("x"), Constant(2)))
+        expected = Mul(
+            Constant(-1),
+            Mul(
+                Mul(
+                    Pow(Variable("x"), Constant(2)),
+                    Add(
+                        Div(
+                            Mul(Constant(2), Constant(1)),
+                            Variable("x")
+                        ),
+                        Mul(
+                            Constant(0),
+                            Log(Variable("x"))
+                        )
+                    )
+                ),
+                Sin(
+                    Pow(Variable("x"), Constant(2))
+                )
+            )
+        )
+        self.assertEqual(expr.diff("x"), expected)
+    def test_cos_repr(self):
+        expr = Cos(Variable("x"))
+        self.assertEqual(expr.__repr__(), 'Cos(Variable("x"))')
+    def test_cos_str(self):
+        expr = Cos(Variable("x"))
+        self.assertEqual(expr.__str__(), "cos(x)")
+    def test_cos_eq(self):
+        expr1 = Cos(Variable("x"))
+        expr2 = Cos(Variable("x"))
+        self.assertEqual(expr1, expr2)
+    def test_cos_neq(self):
+        expr1 = Cos(Variable("x"))
+        expr2 = Cos(Variable("y"))
         self.assertNotEqual(expr1, expr2)
