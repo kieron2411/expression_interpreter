@@ -677,3 +677,77 @@ class TestExpression(unittest.TestCase):
         expr1 = Cos(Variable("x"))
         expr2 = Cos(Variable("y"))
         self.assertNotEqual(expr1, expr2)
+
+    #test simplify
+    def test_simplify_const(self):
+        self.assertEqual(Constant(5).simplify(), Constant(5))
+    def test_simplify_var(self):
+        self.assertEqual(Variable("x").simplify(), Variable("x"))
+    def test_simplify_add_zero(self):
+        expr = Add(Constant(0), Variable("x"))
+        self.assertEqual(expr.simplify(), Variable("x"))
+    def test_simplify_add_constants(self):
+        expr = Add(Constant(5), Constant(2))
+        self.assertEqual(expr.simplify(), Constant(7))
+    def test_simplify_add_no_simp(self):
+        expr = Add(Variable("x"), Variable("y"))
+        self.assertEqual(expr.simplify(), Add(Variable("x"), Variable("y")))
+    def test_simplify_sub_zero(self):
+        expr = Sub(Variable("x"), Constant(0))
+        self.assertEqual(expr.simplify(), Variable("x"))
+    def test_simplify_sub_constants(self):
+        expr = Sub(Constant(5), Constant(2))
+        self.assertEqual(expr.simplify(), Constant(3))
+    def test_simplify_mul_zero(self):
+        expr = Mul(Constant(0), Variable("x"))
+        self.assertEqual(expr.simplify(), Constant(0))
+    def test_simplify_mul_one(self):
+        expr = Mul(Constant(1), Variable("x"))
+        self.assertEqual(expr.simplify(), Variable("x"))
+    def test_simplify_mul_constants(self):
+        expr = Mul(Constant(5), Constant(2))
+        self.assertEqual(expr.simplify(), Constant(10))
+    def test_simplify_div_one(self):
+        expr = Div(Variable("x"), Constant(1))
+        self.assertEqual(expr.simplify(), Variable("x"))
+    def test_simplify_div_constants(self):
+        expr = Div(Constant(6), Constant(2))
+        self.assertEqual(expr.simplify(), Constant(3))
+    def test_simplify_div_zero_error(self):
+        expr = Div(Variable("x"), Sub(Constant(2), Constant(2)))
+        with self.assertRaises(ZeroDivisionError):
+            expr.simplify()
+    def test_simplify_pow_one(self):
+        expr = Pow(Variable("x"), Constant(1))
+        self.assertEqual(expr.simplify(), Variable("x"))
+    def test_simplify_pow_zero(self):
+        expr = Pow(Variable("x"), Constant(0))
+        self.assertEqual(expr.simplify(), Constant(1))
+    def test_simplify_pow_constants(self):
+        expr = Pow(Constant(2), Constant(3))
+        self.assertEqual(expr.simplify(), Constant(8))
+    def test_simplify_sin_constant(self):
+        expr = Sin(Constant(0))
+        self.assertEqual(expr.simplify(), Constant(0))
+    def test_simplify_cos_constant(self):
+        expr = Cos(Constant(0))
+        self.assertEqual(expr.simplify(), Constant(1))
+    def test_simplify_log_constant(self):
+        expr = Log(Constant(math.e))
+        self.assertEqual(expr.simplify(), Constant(1))
+    def test_simplify_nested(self):
+        expr = Div(
+            Mul(Constant(1), Constant(0)),
+            Add(Constant(3), Constant(2))
+        )
+        self.assertEqual(expr.simplify(), Constant(0))
+    def test_simplify_diff(self):
+        expr = Mul(
+            Add(Constant(3), Variable("x")),
+            Add(Constant(2), Variable("x"))
+        )
+        expected = Add(
+            Add(Constant(3), Variable("x")),
+            Add(Constant(2), Variable("x"))
+        )
+        self.assertEqual(expr.diff("x").simplify(), expected)
