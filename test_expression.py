@@ -45,7 +45,7 @@ class TestExpression(unittest.TestCase):
         self.assertEqual(var.__repr__(), 'Variable("x")')
     def test_variable_str(self):
         var = Variable("x")
-        self.assertEqual(var.__str__(), "x")
+        self.assertEqual(var.__str__(), '"x"')
     def test_variable_eq(self):
         var1 = Variable("x")
         var2 = Variable("x")
@@ -79,7 +79,7 @@ class TestExpression(unittest.TestCase):
         self.assertEqual(expr.__repr__(), 'Add(Constant(5), Variable("x"))')
     def test_add_str(self):
         expr = Add(Constant(5), Variable("x"))
-        self.assertEqual(expr.__str__(), "(5 + x)")
+        self.assertEqual(expr.__str__(), '(5 + "x")')
     def test_add_eq(self):
         expr1 = Add(Constant(5), Variable("x"))
         expr2 = Add(Constant(5), Variable("x"))
@@ -113,7 +113,7 @@ class TestExpression(unittest.TestCase):
         self.assertEqual(expr.__repr__(), 'Sub(Constant(5), Variable("x"))')
     def test_sub_str(self):
         expr = Sub(Constant(5), Variable("x"))
-        self.assertEqual(expr.__str__(), "(5 - x)")
+        self.assertEqual(expr.__str__(), '(5 - "x")')
     def test_sub_eq(self):
         expr1 = Sub(Constant(5), Variable("x"))
         expr2 = Sub(Constant(5), Variable("x"))
@@ -159,7 +159,7 @@ class TestExpression(unittest.TestCase):
         self.assertEqual(expr.__repr__(), 'Mul(Constant(5), Variable("x"))')
     def test_mul_str(self):
         expr = Mul(Constant(5), Variable("x"))
-        self.assertEqual(expr.__str__(), "(5 * x)")
+        self.assertEqual(expr.__str__(), '(5 * "x")')
     def test_mul_eq(self):
         expr1 = Mul(Constant(5), Variable("x"))
         expr2 = Mul(Constant(5), Variable("x"))
@@ -214,7 +214,7 @@ class TestExpression(unittest.TestCase):
         self.assertEqual(expr.__repr__(), 'Div(Constant(5), Variable("x"))')
     def test_div_str(self):
         expr = Div(Constant(5), Variable("x"))
-        self.assertEqual(expr.__str__(), "(5 / x)")
+        self.assertEqual(expr.__str__(), '(5 / "x")')
     def test_div_eq(self):
         expr1 = Div(Constant(5), Variable("x"))
         expr2 = Div(Constant(5), Variable("x"))
@@ -415,7 +415,7 @@ class TestExpression(unittest.TestCase):
         self.assertEqual(expr.__repr__(), 'Log(Add(Constant(1), Variable("x")))')
     def test_log_str(self):
         expr = Log(Add(Constant(1), Variable("x")))
-        self.assertEqual(expr.__str__(), "log((1 + x))")
+        self.assertEqual(expr.__str__(), 'log((1 + "x"))')
     def test_log_eq(self):
         expr1 = Log(Add(Constant(1), Variable("x")))
         expr2 = Log(Add(Constant(1), Variable("x")))
@@ -542,7 +542,7 @@ class TestExpression(unittest.TestCase):
         self.assertEqual(expr.__repr__(), 'Pow(Variable("x"), Constant(2))')
     def test_pow_str(self):
         expr = Pow(Variable("x"), Constant(2))
-        self.assertEqual(expr.__str__(), "(x ^ 2)")
+        self.assertEqual(expr.__str__(), '("x" ^ 2)')
     def test_pow_eq(self):
         expr1 = Pow(Variable("x"), Constant(2))
         expr2 = Pow(Variable("x"), Constant(2))
@@ -600,7 +600,7 @@ class TestExpression(unittest.TestCase):
         self.assertEqual(expr.__repr__(), 'Sin(Variable("x"))')
     def test_sin_str(self):
         expr = Sin(Variable("x"))
-        self.assertEqual(expr.__str__(), "sin(x)")
+        self.assertEqual(expr.__str__(), 'sin("x")')
     def test_sin_eq(self):
         expr1 = Sin(Variable("x"))
         expr2 = Sin(Variable("x"))
@@ -668,7 +668,7 @@ class TestExpression(unittest.TestCase):
         self.assertEqual(expr.__repr__(), 'Cos(Variable("x"))')
     def test_cos_str(self):
         expr = Cos(Variable("x"))
-        self.assertEqual(expr.__str__(), "cos(x)")
+        self.assertEqual(expr.__str__(), 'cos("x")')
     def test_cos_eq(self):
         expr1 = Cos(Variable("x"))
         expr2 = Cos(Variable("x"))
